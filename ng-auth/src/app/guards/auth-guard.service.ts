@@ -9,14 +9,14 @@ export class AuthGuard implements CanActivate {
   constructor(private jwtHelper: JwtHelperService, private router: Router, private http: HttpClient) {
   }
   async canActivate() {
-    var token = localStorage.getItem("jwt");
+    const token = localStorage.getItem("jwt");
 
     if (token && !this.jwtHelper.isTokenExpired(token)) {
       console.log(this.jwtHelper.decodeToken(token));
       return true;
     }
 
-    var isRefreshSuccess = await this.tryRefreshingTokens(token);
+    const isRefreshSuccess = await this.tryRefreshingTokens(token);
     if (!isRefreshSuccess) {
       this.router.navigate(["login"]);
     }
@@ -27,21 +27,21 @@ export class AuthGuard implements CanActivate {
   private async tryRefreshingTokens(token: string): Promise<boolean> {
     // Try refreshing tokens using refresh token
     let refreshToken: string = localStorage.getItem("refreshToken");
-    let credentials = JSON.stringify({ accessToken: token, refreshToken: refreshToken });
+    const credentials = JSON.stringify({ accessToken: token, refreshToken: refreshToken });
 
-    var isRefreshSuccess: boolean;
+    let isRefreshSuccess: boolean;
     try {
-      var response = await this.http.post("http://localhost:5000/api/token/refresh", credentials, {
+      const response = await this.http.post("http://localhost:5000/api/token/refresh", credentials, {
         headers: new HttpHeaders({
           "Content-Type": "application/json"
         }),
         observe: 'response'
       }).toPromise();
       // If token refresh is successful, set new tokens in local storage.
-      token = (<any>response).body.accessToken;
-      refreshToken = (<any>response).body.refreshToken;
-      localStorage.setItem("jwt", token);
-      localStorage.setItem("refreshToken", refreshToken);
+      const newToken = (<any>response).body.accessToken;
+      const newRefreshToken = (<any>response).body.refreshToken;
+      localStorage.setItem("jwt", newToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
       isRefreshSuccess = true;
     }
     catch (ex) {      
